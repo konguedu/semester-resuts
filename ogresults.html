@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cinematic Video Showcase</title>
+    
+    <!-- Google Fonts for Premium Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Inter:wght@300&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- Reset & Base --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #000; 
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* --- Video Styling --- */
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; 
+            outline: none;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+            z-index: 1; /* Behind the overlays */
+        }
+
+        video.loaded {
+            opacity: 1;
+        }
+
+        /* --- Center Overlay (Mute Control) --- */
+        .center-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 20; /* Highest layer */
+            pointer-events: none; /* Let clicks pass through except on the button */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .status-indicator {
+            pointer-events: auto; /* Enable clicks on the button */
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            padding: 12px 24px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 13px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            opacity: 0;
+            transition: all 0.4s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .muted-state .status-indicator {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .icon {
+            width: 18px;
+            height: 18px;
+            fill: white;
+        }
+
+        /* --- Bottom Text Overlay --- */
+        .bottom-caption {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            z-index: 10; /* Above video, below center button */
+            padding: 60px 40px 40px 40px;
+            
+            /* Gradient Fade to make text readable */
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
+            
+            text-align: center;
+            color: white;
+            pointer-events: none; /* Allows clicking through text to video */
+            
+            /* Animation */
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideUpFade 1s ease-out 1s forwards;
+        }
+
+        .bottom-caption h1 {
+            font-family: 'Cinzel', serif; /* Elegant Movie Title Font */
+            font-size: 2.5rem;
+            font-weight: 400;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+        }
+
+        .bottom-caption p {
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 300;
+        }
+
+        /* --- Animations --- */
+        @keyframes slideUpFade {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* --- Responsive --- */
+        @media (max-width: 768px) {
+            .bottom-caption h1 { font-size: 1.8rem; }
+            .bottom-caption { padding: 40px 20px 30px 20px; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Video Layer -->
+    <video id="mainVideo" autoplay muted loop playsinline poster="https://picsum.photos/seed/video/1920/1080">
+        <source src="video.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <!-- Bottom Text Overlay -->
+    <div class="bottom-caption">
+        <h1>Enna Ranga</h1>
+        <p>Vaikiyil Muthal Arearku vathukal</p>
+    </div>
+
+    <!-- Center Mute Control -->
+    <div class="center-overlay muted-state" id="overlay">
+        <div class="status-indicator" id="muteBtn">
+            <!-- Mute Icon -->
+            <svg class="icon" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73 4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+            <span>Click to Unmute</span>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('mainVideo');
+        const overlay = document.getElementById('overlay');
+        const muteBtn = document.getElementById('muteBtn');
+        const iconSvg = muteBtn.querySelector('svg path');
+        const btnText = muteBtn.querySelector('span');
+
+        // 1. Attempt to play automatically
+        video.play().catch(error => {
+            console.log("Autoplay blocked, waiting for interaction.");
+        });
+
+        // 2. Fade in video once data is loaded
+        video.addEventListener('loadeddata', () => {
+            video.classList.add('loaded');
+        });
+
+        // 3. Interaction Logic
+        function togglePlayMute() {
+            if (video.muted) {
+                // Unmute
+                video.muted = false;
+                overlay.classList.remove('muted-state'); // Hide center button
+                
+                // Update Icon to Sound On
+                iconSvg.setAttribute('d', "M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z");
+                
+            } else {
+                // Mute
+                video.muted = true;
+                overlay.classList.add('muted-state'); // Show center button
+                
+                // Update Icon back to Muted
+                iconSvg.setAttribute('d', "M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73 4.27 3zM12 4L9.91 6.09 12 8.18V4z");
+                btnText.textContent = "Sound Off";
+            }
+        }
+
+        // Listen for clicks on the button
+        muteBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); 
+            togglePlayMute();
+        });
+
+        // Listen for clicks on the video
+        video.addEventListener('click', togglePlayMute);
+    </script>
+</body>
+</html>
